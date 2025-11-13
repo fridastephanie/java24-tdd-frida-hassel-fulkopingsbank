@@ -90,10 +90,27 @@ class ATMTest {
         }
 
         @Test
+        @DisplayName("insertCard returns false and sets message when user not found")
+        void insertCard_shouldReturnFalseWhenUserNotFound() {
+            // Arrange
+            when(mockBank.isCardLocked("user123")).thenReturn(false);
+            when(mockBank.getUserById("user123")).thenReturn(null);
+
+            // Act
+            boolean result = atm.insertCard("user123");
+
+            // Assert
+            assertFalse(result);
+            assertUserMessage("User not found", null);
+            verify(mockBank).isCardLocked("user123");
+            verify(mockBank).getUserById("user123");
+        }
+
+        @Test
         @DisplayName("ejectCard succeeds when user inserted")
         void ejectCard_shouldSucceedWhenUserInserted() {
             // Arrange & Act
-            insertUserCard(); // Already performs insertCard
+            insertUserCard();
 
             boolean result = atm.ejectCard();
 
@@ -117,6 +134,18 @@ class ATMTest {
     @Nested
     @DisplayName("PIN Operations")
     class PinOperations {
+
+        @Test
+        @DisplayName("enterPin returns false and sets message when no card inserted")
+        void enterPin_shouldReturnFalseWhenNoCardInserted() {
+            // Act
+            boolean result = atm.enterPin("1234");
+
+            // Assert
+            assertFalse(result);
+            assertUserMessage("No card inserted", null);
+            verify(mockBank, never()).validatePin(anyString(), anyString());
+        }
 
         @Test
         @DisplayName("enterPin returns true for correct PIN")
